@@ -86,7 +86,7 @@ def optimize_model(batch):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    config_path = "src/scripts/config.yaml"
+    config_path = "src/scripts/config/config.yaml"
     parser.add_argument(
         "--config",
         type=str,

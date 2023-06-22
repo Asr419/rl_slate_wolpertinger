@@ -60,6 +60,7 @@ class SlateGym(gym.Env):
             self.curr_user.update_budget_noselection()
             # create a fake selected_doc_feature of all zeros
             selected_doc_feature = torch.zeros(cdocs_feature.shape[1])
+
             selected_doc_quality = 0
         else:
             # print("Document selected")
@@ -72,9 +73,14 @@ class SlateGym(gym.Env):
             selected_doc_quality = cdocs_quality[selected_doc_idx]
             selected_doc_length = cdocs_length[selected_doc_idx]
             # TODO: remove generate topic response and fix it in the response model
+            selected_doc_feature_reshaped = selected_doc_feature.view(1, -1)
+            self.slate_items = torch.cat(
+                (self.slate_items, selected_doc_feature_reshaped), dim=1
+            )
             response = self.curr_user.response_model.generate_response(
                 self.curr_user.get_state(),
                 selected_doc_feature,
+                self.slate_items,
                 doc_quality=selected_doc_quality,
             )
 
@@ -99,6 +105,7 @@ class SlateGym(gym.Env):
 
     def reset(self) -> None:
         # 1) sample user
+        self.slate_items = torch.zeros(1, 20)
         user = self.user_sampler.sample_user()
         self.curr_user = user
         # 2) reinitialize user budget and user state

@@ -4,6 +4,7 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 import torch
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 class AbstractResponseModel(metaclass=abc.ABCMeta):
@@ -52,10 +53,11 @@ class AmplifiedResponseModel(AbstractResponseModel):
         self,
         estimated_user_state: torch.Tensor,
         doc_repr: torch.Tensor,
+        slate: torch.Tensor,
         **kwargs,
     ) -> torch.Tensor:
         return (
-            self._generate_response(estimated_user_state, doc_repr, **kwargs)
+            self._generate_response(estimated_user_state, doc_repr, slate, **kwargs)
             * self.amp_factor
         )
 
@@ -68,15 +70,39 @@ class WeightedDotProductResponseModel(AmplifiedResponseModel):
         super().__init__(amp_factor, **kwds)
         self.alpha = alpha
 
+    def diversity_score(self, slate: torch.Tensor):
+        slate = slate[1:]
+
+        # Convert the rest of the tensors in the list to a tensor matrix
+        slate_items = slate[:-1]
+        if slate_items.numel() == 0:
+            return 0
+        else:
+            tensor_tuple = tuple(slate[:-1])
+            tensor_matrix = torch.stack(tensor_tuple, dim=0)
+            last_tensor = slate[-1]
+
+            # Convert the last tensor to (1, 20) shape
+            last_tensor = last_tensor.view(1, -1)
+
+            # Compute the cosine similarity between the last tensor and the rest of the tensors
+            similarities = cosine_similarity(last_tensor, tensor_matrix)
+
+            # Calculate the diversity score as the average dissimilarity
+            d_score = 1 - similarities.mean()
+            return d_score
+
     def _generate_response(
         self,
         estimated_user_state: torch.Tensor,
         doc_repr: torch.Tensor,
+        slate: torch.Tensor,
         doc_quality: torch.Tensor,
         **kwargs,
     ) -> torch.Tensor:
+        diversity = self.diversity_score(slate)
         satisfaction = torch.dot(estimated_user_state, doc_repr)
-        response = (1 - self.alpha) * satisfaction + self.alpha * doc_quality
+        response = (1 - self.alpha) * diversity + self.alpha * doc_quality
         return response
 
 

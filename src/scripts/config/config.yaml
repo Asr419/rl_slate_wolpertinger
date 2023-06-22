@@ -11,7 +11,7 @@ parameters:
   num_item_features: 20
   num_candidates: 2000
   num_user_features: 20
-  alpha_response: 0.25
+  alpha_response: 0.5
   ######## Training related parameters ########
   replay_memory_capacity: 10000
   batch_size: 30
