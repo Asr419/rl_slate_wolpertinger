@@ -71,10 +71,10 @@ class WeightedDotProductResponseModel(AmplifiedResponseModel):
         self.alpha = alpha
 
     def diversity_score(self, slate: torch.Tensor):
-        slate = slate[1:]
+        slate1 = slate[1:]
 
         # Convert the rest of the tensors in the list to a tensor matrix
-        slate_items = slate[:-1]
+        slate_items = slate1[:-1]
         if slate_items.numel() == 0:
             return 0
         else:

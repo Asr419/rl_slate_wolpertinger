@@ -75,7 +75,7 @@ class SlateGym(gym.Env):
             # TODO: remove generate topic response and fix it in the response model
             selected_doc_feature_reshaped = selected_doc_feature.view(1, -1)
             self.slate_items = torch.cat(
-                (self.slate_items, selected_doc_feature_reshaped), dim=1
+                (self.slate_items, selected_doc_feature_reshaped), dim=0
             )
             response = self.curr_user.response_model.generate_response(
                 self.curr_user.get_state(),
