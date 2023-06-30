@@ -7,6 +7,8 @@ import torch.nn as nn
 from rl_recsys.user_modeling.features_gen import AbstractFeaturesGenerator
 
 feature_gen_type = TypeVar("feature_gen_type", bound=AbstractFeaturesGenerator)
+INDEX1 = -1
+boredom = 0
 
 
 class AbstractUserState(nn.Module, metaclass=abc.ABCMeta):
@@ -38,6 +40,8 @@ class ObservableUserState(AbstractUserState):
     ) -> None:
         self.user_features = user_features
         self.interest_update_rate = interest_update_rate
+        self.index1 = -1
+        self.boredom = 0
         super().__init__(**kwargs)
 
     def _generate_state(self) -> torch.Tensor:
@@ -54,17 +58,25 @@ class ObservableUserState(AbstractUserState):
         ) * -self.user_state[
             index
         ]  # type: ignore
-
+        print(f"Selected_Index: {self.index1}")
+        if self.index1 == index:
+            self.boredom += 1
+        else:
+            self.boredom = 0
         I = torch.dot(self.user_state, selected_doc_feature)  # type: ignore
         p_positive = (I + 1) / 2
         p_negative = (1 - I) / 2
 
         random = torch.rand(1)
-        if random < p_positive:
+        if (random < p_positive) & (self.boredom <= 3):
             self.user_state[index] += delta_t  # type: ignore
         # if random < p_negative:
         #     self.user_state[index] -= delta_t  # type: ignore
-        else:
+        elif (random > p_positive) & (self.boredom <= 3):
             self.user_state[index] -= delta_t  # type: ignore
+        elif self.boredom > 3:
+            self.user_state[index] = -1
 
+        self.index1 = index
+        print(f"User State:{self.user_state}")
         self.user_state = torch.clamp(self.user_state, -1, 1)

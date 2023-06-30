@@ -81,6 +81,7 @@ class DotProductChoiceModel(NormalizableChoiceModel):
         self, user_state: torch.Tensor, docs_repr: torch.Tensor
     ) -> torch.Tensor:
         # Calculate dot product between user_state and each document representation
+        # print(f"Selection User state:{user_state}")
         scores = torch.mm(user_state.unsqueeze(0), docs_repr.t()).squeeze(0)
         # normalize dot product values to 0 and 1 for convenience of training
         return scores

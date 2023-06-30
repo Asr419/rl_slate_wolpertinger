@@ -11,14 +11,14 @@ parameters:
   num_item_features: 20
   num_candidates: 2000
   num_user_features: 20
-  alpha_response: 0.1
+  alpha_response: 0.25
   ######## Training related parameters ########
   replay_memory_capacity: 10000
   batch_size: 30
   gamma: 1.0
   tau: 0.0001
   lr: 1e-4
-  num_episodes: 20000
+  num_episodes: 5
   warmup_batches: 1
   device: "cpu"
   ######## Models related parameters ########
@@ -36,5 +36,5 @@ parameters:
   #[5, 7, 9, 11, 13, 17]
   #[5, 7, 77, 79, 81, 42, 11, 13, 17]
   ######## Grouping ########
-  grouping: "Proto-Item2"
+  grouping: "Proto-Item-Diversity"
   

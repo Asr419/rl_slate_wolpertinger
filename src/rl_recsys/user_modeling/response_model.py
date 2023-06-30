@@ -102,11 +102,7 @@ class WeightedDotProductResponseModel(AmplifiedResponseModel):
     ) -> torch.Tensor:
         diversity = self.diversity_score(slate)
         satisfaction = torch.dot(estimated_user_state, doc_repr)
-        response = (
-            (0.5 - self.alpha) * satisfaction
-            + self.alpha * doc_quality
-            + 0.5 * diversity
-        )
+        response = (1 - self.alpha) * satisfaction + self.alpha * doc_quality
         return response
 
 
