@@ -2,7 +2,7 @@ from rl_recsys.user_modeling.features_gen import UniformFeaturesGenerator
 from scripts.simulation_imports import *
 
 
-def optimize_model(batch):
+def optimize_model(batch,batch_size):
     optimizer.zero_grad()
 
     (
@@ -74,7 +74,7 @@ def optimize_model(batch):
     optimizer.step()
     item = actor.compute_proto_slate(state_batch, use_actor_policy_net=True)
     # Reshaping the tensor to match the desired shape [30, 20]
-    proto_action_tensor = item.reshape(30, 20, 5)
+    proto_action_tensor = item.reshape(batch_size, 20, 5)
 
     # Taking the average along the third axis to reduce the tensor size
     proto_action_tensor = torch.mean(proto_action_tensor, axis=2)
@@ -298,7 +298,7 @@ if __name__ == "__main__":
                 batch = next(iter(replay_memory_dataloader))
                 for elem in batch:
                     elem.to(DEVICE)
-                batch_loss, batch_actor_loss = optimize_model(batch)
+                batch_loss, batch_actor_loss = optimize_model(batch,BATCH_SIZE)
                 agent.soft_update_target_network()
                 # actor.soft_update_target_network()
                 loss.append(batch_loss)

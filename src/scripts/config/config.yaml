@@ -1,7 +1,7 @@
 parameters:
   ######## User related parameters ########
   resp_amp_factor: 1.0
-  state_model_cls: ObservedUserState
+  state_model_cls: BoredomObservableUserState
   choice_model_cls: DotProductChoiceModel
   response_model_cls: WeightedDotProductResponseModel
   ######## Environment related parameters ########
@@ -18,7 +18,7 @@ parameters:
   gamma: 1.0
   tau: 0.0001
   lr: 1e-4
-  num_episodes: 5
+  num_episodes: 2
   warmup_batches: 1
   device: "cpu"
   ######## Models related parameters ########

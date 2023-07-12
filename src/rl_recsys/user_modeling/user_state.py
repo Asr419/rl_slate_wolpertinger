@@ -58,6 +58,33 @@ class ObservableUserState(AbstractUserState):
         ) * -self.user_state[
             index
         ]  # type: ignore
+        I = torch.dot(self.user_state, selected_doc_feature)  # type: ignore
+        p_positive = (I + 1) / 2
+        p_negative = (1 - I) / 2
+
+        random = torch.rand(1)
+        if (random < p_positive):
+            self.user_state[index] += delta_t  # type: ignore
+        # if random < p_negative:
+        #     self.user_state[index] -= delta_t  # type: ignore
+        elif (random > p_positive):
+            self.user_state[index] -= delta_t  # type: ignore
+    
+        self.user_state = torch.clamp(self.user_state, -1, 1)
+
+
+class BoredomObservableUserState(ObservableUserState):
+    def update_state(self, selected_doc_feature: torch.Tensor) -> None:
+        # Perform additional update logic here
+        # You can access the parent class methods and attributes using the `super()` function
+        super().update_state(selected_doc_feature)
+        index = torch.argmax(selected_doc_feature)
+        delta_t = (
+            -self.interest_update_rate * torch.abs(self.user_state[index])  # type: ignore
+            + self.interest_update_rate
+        ) * -self.user_state[
+            index
+        ]  # type: ignore
         print(f"Selected_Index: {self.index1}")
         if self.index1 == index:
             self.boredom += 1
