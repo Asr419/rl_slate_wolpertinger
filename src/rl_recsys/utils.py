@@ -53,7 +53,7 @@ def save_run_wa(seed, agent, save_dict, directory: str, actor):
     save_dir.mkdir(parents=True, exist_ok=True)
 
     # save config
-    source_path = "src/scripts/config.yaml"
+    source_path = "src/scripts/config/config.yaml"
     destination_path = save_dir / Path("config.yaml")
     shutil.copy(source_path, destination_path)
 

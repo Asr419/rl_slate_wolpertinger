@@ -86,6 +86,7 @@ class BoredomObservableUserState(ObservableUserState):
             index
         ]  # type: ignore
         print(f"Selected_Index: {self.index1}")
+        print(f"Boredom:{self.boredom}")
         if self.index1 == index:
             self.boredom += 1
         else:
@@ -95,13 +96,13 @@ class BoredomObservableUserState(ObservableUserState):
         p_negative = (1 - I) / 2
 
         random = torch.rand(1)
-        if (random < p_positive) & (self.boredom <= 3):
+        if (random < p_positive) & (self.boredom < 3):
             self.user_state[index] += delta_t  # type: ignore
         # if random < p_negative:
         #     self.user_state[index] -= delta_t  # type: ignore
-        elif (random > p_positive) & (self.boredom <= 3):
+        elif (random > p_positive) & (self.boredom < 3):
             self.user_state[index] -= delta_t  # type: ignore
-        elif self.boredom > 3:
+        elif self.boredom >= 3:
             self.user_state[index] = -1
 
         self.index1 = index

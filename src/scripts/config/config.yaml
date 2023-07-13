@@ -5,7 +5,7 @@ parameters:
   choice_model_cls: DotProductChoiceModel
   response_model_cls: WeightedDotProductResponseModel
   ######## Environment related parameters ########
-  num_users: 5000
+  num_users: 3
   sess_budget: 200
   slate_size: 5
   num_item_features: 20
@@ -18,7 +18,7 @@ parameters:
   gamma: 1.0
   tau: 0.0001
   lr: 1e-4
-  num_episodes: 2
+  num_episodes: 5
   warmup_batches: 1
   device: "cpu"
   ######## Models related parameters ########
@@ -36,5 +36,5 @@ parameters:
   #[5, 7, 9, 11, 13, 17]
   #[5, 7, 77, 79, 81, 42, 11, 13, 17]
   ######## Grouping ########
-  grouping: "Proto-Item-Diversity"
+  grouping: "Proto-Item-old"
   
