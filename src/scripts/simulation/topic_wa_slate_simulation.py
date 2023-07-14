@@ -210,7 +210,7 @@ if __name__ == "__main__":
         save_dict = defaultdict(list)
         is_terminal = False
         for i_episode in tqdm(range(NUM_EPISODES)):
-            satisfaction, loss, diff_to_best, quality, actor_loss = [], [], [], [], []
+            satisfaction, loss, diff_to_best, quality, actor_loss, time_unit_consumed = [], [], [], [], [], []
 
             env.reset()
             is_terminal = False
@@ -292,6 +292,10 @@ if __name__ == "__main__":
                             )
                         )
                     user_state = next_user_state
+                    if torch.all(selected_doc_feature == 0):
+                        time_unit_consumed.append(-0.5)
+                    else:
+                        time_unit_consumed.append(4.0)
 
             # optimize model
             if len(replay_memory_dataset.memory) >= WARMUP_BATCHES * BATCH_SIZE:
@@ -306,7 +310,7 @@ if __name__ == "__main__":
 
             loss = torch.mean(torch.tensor(loss))
             actor_loss = torch.mean(torch.tensor(actor_loss))
-            sess_length = len(torch.tensor(quality))
+            sess_length = np.sum(time_unit_consumed)
             ep_quality = torch.mean(torch.tensor(quality))
             ep_avg_satisfaction = torch.mean(torch.tensor(satisfaction))
             ep_cum_satisfaction = torch.sum(torch.tensor(satisfaction))
@@ -341,6 +345,7 @@ if __name__ == "__main__":
                 "best_rl_avg_diff": ep_max_avg - ep_avg_satisfaction,
                 "best_avg_avg_diff": ep_max_avg - ep_avg_avg,
                 "cum_normalized": cum_normalized,
+                "session_length":sess_length
             }
             if len(replay_memory_dataset.memory) >= (WARMUP_BATCHES * BATCH_SIZE):
                 log_dict["loss"] = loss
