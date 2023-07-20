@@ -48,7 +48,7 @@ from rl_recsys.user_modeling.user_state import ObservableUserState, BoredomObser
 from rl_recsys.utils import save_run, save_run_wa
 
 class_name_to_class = {
-    "ObservedUserState": ObservableUserState,
+    "ObservableUserState": ObservableUserState,
     "BoredomObservableUserState": BoredomObservableUserState,
     "DotProductChoiceModel": DotProductChoiceModel,
     "DotProductResponseModel": DotProductResponseModel,

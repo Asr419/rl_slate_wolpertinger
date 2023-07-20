@@ -58,7 +58,7 @@ def optimize_model(batch):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    config_path = "src/scripts/config.yaml"
+    config_path = "src/scripts/config/config.yaml"
     parser.add_argument(
         "--config",
         type=str,
@@ -242,8 +242,6 @@ if __name__ == "__main__":
 
                     # check that not null document has been selected
                     if not torch.all(selected_doc_feature == 0):
-                        # append 4 document length
-                        time_unit_consumed.append(4.0)
                         # push memory
                         replay_memory_dataset.push(
                             transition_cls(
@@ -258,6 +256,11 @@ if __name__ == "__main__":
                         # append -0.5
                         time_unit_consumed.append(-0.5)
                     user_state = next_user_state
+                    user_state = next_user_state
+                    if torch.all(selected_doc_feature == 0):
+                        time_unit_consumed.append(-0.5)
+                    else:
+                        time_unit_consumed.append(4.0)
 
             # optimize model
             if len(replay_memory_dataset.memory) >= WARMUP_BATCHES * BATCH_SIZE:
@@ -303,6 +306,7 @@ if __name__ == "__main__":
                 "best_rl_avg_diff": ep_max_avg - ep_avg_satisfaction,
                 "best_avg_avg_diff": ep_max_avg - ep_avg_avg,
                 "cum_normalized": cum_normalized,
+                "session_length":sess_length
             }
             if len(replay_memory_dataset.memory) >= (WARMUP_BATCHES * BATCH_SIZE):
                 log_dict["loss"] = loss
