@@ -195,7 +195,7 @@ if __name__ == "__main__":
 
         criterion = torch.nn.SmoothL1Loss()
         optimizer = optim.Adam(agent.parameters(), lr=LR)
-        actor_optimizer = optim.Adam(actor.parameters(), lr=LR)
+        actor_optimizer = optim.Adam(actor.parameters(), lr=LR, weight_decay=5e-3)
 
         ############################## TRAINING ###################################
         save_dict = defaultdict(list)
