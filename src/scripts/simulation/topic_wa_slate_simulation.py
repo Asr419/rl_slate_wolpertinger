@@ -204,7 +204,7 @@ if __name__ == "__main__":
 
         criterion = torch.nn.SmoothL1Loss()
         optimizer = optim.Adam(agent.parameters(), lr=LR)
-        actor_optimizer = optim.Adam(actor.parameters(), lr=LR)
+        actor_optimizer = optim.Adam(actor.parameters(), lr=LR, weight_decay=5e-3)
 
         ############################## TRAINING ###################################
         save_dict = defaultdict(list)
@@ -363,7 +363,7 @@ if __name__ == "__main__":
             save_dict["cum_normalized"].append(cum_normalized)
 
         wandb.finish()
-        directory = f"observed_topic_wa_5_slateq_{ALPHA_RESPONSE}_try"
+        directory = f"proto_slate_10_{ALPHA_RESPONSE}"
         save_run_wa(
             seed=seed,
             save_dict=save_dict,
