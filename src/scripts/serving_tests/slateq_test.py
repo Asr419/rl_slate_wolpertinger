@@ -7,13 +7,13 @@ base_path = Path.home() / Path(os.environ.get("SAVE_PATH"))
 
 
 if __name__ == "__main__":
-    SEEDS = [42, 5, 7, 97, 53]
-    USER_SEED = 11
-    NUM_EPISODES = 100
+    SEEDS = [5, 7, 46, 53, 77]
+    USER_SEED = 13
+    NUM_EPISODES = 200
 
     for seed in tqdm(SEEDS):
         ALPHA = 0.25
-        RUN_BASE_PATH = Path(f"observed_topic_slateq_{ALPHA}_try_2000_{seed}")
+        RUN_BASE_PATH = Path(f"slateq_boredom_{ALPHA}_2000_{seed}")
 
         parser = argparse.ArgumentParser()
         config_path = base_path / RUN_BASE_PATH / Path("config.yaml")
@@ -236,5 +236,5 @@ if __name__ == "__main__":
         for k, v in save_dict.items():
             print(k, len(v))
         # wandb.finish()
-        directory = f"test_serving_slateq_2000"
+        directory = f"serving_slateq_2000"
         save_run(seed=seed, save_dict=save_dict, agent=agent, directory=directory)

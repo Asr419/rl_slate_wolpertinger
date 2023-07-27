@@ -42,6 +42,7 @@ class ObservableUserState(AbstractUserState):
         self.interest_update_rate = interest_update_rate
         self.index1 = -1
         self.boredom = 0
+        self.boredom_list = []
         super().__init__(**kwargs)
 
     def _generate_state(self) -> torch.Tensor:
@@ -108,3 +109,41 @@ class BoredomObservableUserState(ObservableUserState):
         self.index1 = index
         print(f"User State:{self.user_state}")
         self.user_state = torch.clamp(self.user_state, -1, 1)
+
+
+# class BoredomObservableUserState(ObservableUserState):
+#     def update_state(self, selected_doc_feature: torch.Tensor) -> None:
+#         # Perform additional update logic here
+#         # You can access the parent class methods and attributes using the `super()` function
+#         super().update_state(selected_doc_feature)
+#         index = torch.argmax(selected_doc_feature)
+#         delta_t = (
+#             -self.interest_update_rate * torch.abs(self.user_state[index])  # type: ignore
+#             + self.interest_update_rate
+#         ) * -self.user_state[
+#             index
+#         ]  # type: ignore
+       
+#         if len(self.boredom_list) < 10:
+#             self.boredom_list.append(index) 
+#         else:
+#             self.boredom_list.append(index) 
+#             self.boredom_list.pop(0)
+#         count = self.boredom_list.count(index)
+#         I = torch.dot(self.user_state, selected_doc_feature)  # type: ignore
+#         p_positive = (I + 1) / 2
+#         p_negative = (1 - I) / 2
+
+#         random = torch.rand(1)
+#         if (random < p_positive) & (count < 5):
+#             self.user_state[index] += delta_t  # type: ignore
+#         # if random < p_negative:
+#         #     self.user_state[index] -= delta_t  # type: ignore
+#         elif (random > p_positive) & (count < 5):
+#             self.user_state[index] -= delta_t  # type: ignore
+#         elif count >= 5:
+#             self.user_state[index] = -1
+
+       
+#         # print(f"User State:{self.user_state}")
+#         self.user_state = torch.clamp(self.user_state, -1, 1)

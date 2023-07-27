@@ -322,5 +322,5 @@ if __name__ == "__main__":
             save_dict["cum_normalized"].append(cum_normalized)
 
         wandb.finish()
-        directory = f"slateq_boredom_{ALPHA_RESPONSE}_2000"
+        directory = f"slateq_boredom_{ALPHA_RESPONSE}_300"
         save_run(seed=seed, save_dict=save_dict, agent=agent, directory=directory)

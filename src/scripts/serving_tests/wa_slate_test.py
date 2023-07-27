@@ -15,7 +15,7 @@ if __name__ == "__main__":
     for seed in SEEDS:
         for k in K:
             pl.seed_everything(USER_SEED)
-            RUN_BASE_PATH = Path(f"proto_item_{k}_{ALPHA}_{seed}")
+            RUN_BASE_PATH = Path(f"proto_slate_{k}_{ALPHA}_{seed}")
             PATH = base_path / RUN_BASE_PATH / Path("model.pt")
             ACTOR_PATH = base_path / RUN_BASE_PATH / Path("actor.pt")
             parser = argparse.ArgumentParser()
@@ -245,5 +245,5 @@ if __name__ == "__main__":
 
             # wandb.finish()
 
-            directory = f"serving_proto_item_2000_{k}"
+            directory = f"serving_proto_slate_2000_{k}"
             save_run(seed=seed, save_dict=save_dict, agent=agent, directory=directory)

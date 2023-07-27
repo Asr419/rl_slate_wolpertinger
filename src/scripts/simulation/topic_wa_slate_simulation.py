@@ -363,7 +363,7 @@ if __name__ == "__main__":
             save_dict["cum_normalized"].append(cum_normalized)
 
         wandb.finish()
-        directory = f"proto_slate_10_{ALPHA_RESPONSE}"
+        directory = f"proto_slate_5_{ALPHA_RESPONSE}"
         save_run_wa(
             seed=seed,
             save_dict=save_dict,
