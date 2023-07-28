@@ -163,7 +163,7 @@ if __name__ == "__main__":
         )
 
         criterion = torch.nn.SmoothL1Loss()
-        optimizer = optim.Adam(agent.parameters(), lr=LR)
+        optimizer = optim.Adam(agent.parameters(), lr=LR, weight_decay=1e-3)
 
         ############################## TRAINING ###################################
         save_dict = defaultdict(list)
@@ -183,6 +183,7 @@ if __name__ == "__main__":
 
             cdocs_features, cdocs_quality, cdocs_length = env.get_candidate_docs()
             user_state = torch.Tensor(env.curr_user.get_state()).to(DEVICE)
+            
 
             max_sess, avg_sess = [], []
             while not is_terminal:
@@ -293,7 +294,7 @@ if __name__ == "__main__":
                 f"Avg_Avg_satisfaction: {ep_avg_avg} - Avg_Cum_Rew: {ep_avg_cum}\n"
                 f"Cumulative_Normalized: {cum_normalized}"
             )
-            print(log_str)
+            # print(log_str)
             ###########################################################################
             log_dict = {
                 "quality": ep_quality,

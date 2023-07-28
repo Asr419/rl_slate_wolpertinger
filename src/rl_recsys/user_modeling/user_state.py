@@ -86,8 +86,8 @@ class BoredomObservableUserState(ObservableUserState):
         ) * -self.user_state[
             index
         ]  # type: ignore
-        print(f"Selected_Index: {self.index1}")
-        print(f"Boredom:{self.boredom}")
+        # print(f"Selected_Index: {self.index1}")
+        # print(f"Boredom:{self.boredom}")
         if self.index1 == index:
             self.boredom += 1
         else:
@@ -107,7 +107,7 @@ class BoredomObservableUserState(ObservableUserState):
             self.user_state[index] = -1
 
         self.index1 = index
-        print(f"User State:{self.user_state}")
+        # print(f"User State:{self.user_state}")
         self.user_state = torch.clamp(self.user_state, -1, 1)
 
 
