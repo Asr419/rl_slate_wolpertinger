@@ -233,6 +233,7 @@ if __name__ == "__main__":
                         is_terminal,
                         _,
                         _,
+                        diverse_topics,
                     ) = env.step(slate, cdocs_subset_idx=None)
                     # normalize satisfaction between 0 and 1
                     # response = (response - min_rew) / (max_rew - min_rew)
@@ -307,7 +308,8 @@ if __name__ == "__main__":
                 "best_rl_avg_diff": ep_max_avg - ep_avg_satisfaction,
                 "best_avg_avg_diff": ep_max_avg - ep_avg_avg,
                 "cum_normalized": cum_normalized,
-                "session_length":sess_length
+                "session_length":sess_length, 
+                "diverse_topics": diverse_topics,
             }
             if len(replay_memory_dataset.memory) >= (WARMUP_BATCHES * BATCH_SIZE):
                 log_dict["loss"] = loss
@@ -323,5 +325,5 @@ if __name__ == "__main__":
             save_dict["cum_normalized"].append(cum_normalized)
 
         wandb.finish()
-        directory = f"slateq_boredom_{ALPHA_RESPONSE}_300"
+        directory = f"slateq_non-boredom_{ALPHA_RESPONSE}_300"
         save_run(seed=seed, save_dict=save_dict, agent=agent, directory=directory)

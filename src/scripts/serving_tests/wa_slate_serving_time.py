@@ -8,7 +8,6 @@ save_path = os.environ.get("SAVE_PATH")
 BASE_LOAD_PATH = Path.home() / save_path
 load_dotenv()
 base_path = Path.home() / Path(os.environ.get("SAVE_PATH"))
-
 MODEL_SEED = 53
 RUN_K = [5, 10, 20]
 DEVICE = "cpu"
@@ -25,11 +24,11 @@ if __name__ == "__main__":
     serving_time_users_list = []
 
     for run_k in RUN_K:
-        FOLDER_NAME = f"proto_item_{run_k}_0.25_{MODEL_SEED}"
+        FOLDER_NAME = f"proto_slate_{run_k}_0.25_{MODEL_SEED}"
         AGENT_PATH = base_path / FOLDER_NAME / Path("model.pt")
         ACTOR_PATH = base_path / FOLDER_NAME / Path("actor.pt")
         parser = argparse.ArgumentParser()
-        config_path = base_path / FOLDER_NAME / Path("config.yaml")
+        config_path = base_path / FOLDER_NAME  / Path("config.yaml")
         parser.add_argument(
             "--config",
             type=str,
@@ -45,7 +44,7 @@ if __name__ == "__main__":
 
         for num_candidates in NUM_CANDIDATES:
             num_candidates_list.append(num_candidates)
-            model_name_list.append(f"WA-Item-{run_k}")
+            model_name_list.append(f"WA-SlateQ-{run_k}")
 
             ######## User related parameters ########
             state_model_cls = parameters["state_model_cls"]
@@ -154,7 +153,8 @@ if __name__ == "__main__":
                             user_state,
                             cdocs_features,
                             use_actor_policy_net=True,
-                            )
+                            slate_size=SLATE_SIZE,
+                        )
 
                         q_val_list = []
                         for cdoc in cdocs_features_act:

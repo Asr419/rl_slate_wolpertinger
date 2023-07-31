@@ -4,6 +4,9 @@ import pandas as pd
 
 from scripts.simulation_imports import *
 
+load_dotenv()
+base_path = Path.home() / Path(os.environ.get("SAVE_PATH"))
+
 save_path = os.environ.get("SAVE_PATH")
 BASE_LOAD_PATH = Path.home() / save_path
 
@@ -14,8 +17,18 @@ print("DEVICE: ", DEVICE)
 
 NUM_CANDIDATES = [300, 500, 1000, 2000]
 if __name__ == "__main__":
+    
+
+    seed = 37
+
+    model_name_list = []
+    num_candidates_list = []
+    serving_time_users_list = []
+
+    FOLDER_NAME = f"slateq_boredom_0.25_2000_{MODEL_SEED}"
+    AGENT_PATH = base_path / FOLDER_NAME / Path("model.pt")
     parser = argparse.ArgumentParser()
-    config_path = "src/scripts/config.yaml"
+    config_path = base_path / FOLDER_NAME / Path("config.yaml")
     parser.add_argument(
         "--config",
         type=str,
@@ -28,15 +41,6 @@ if __name__ == "__main__":
         config = yaml.safe_load(f)
 
     parameters = config["parameters"]
-
-    seed = 37
-
-    model_name_list = []
-    num_candidates_list = []
-    serving_time_users_list = []
-
-    FOLDER_NAME = f"observed_topic_slateq_{MODEL_SEED}"
-    AGENT_PATH = BASE_LOAD_PATH / FOLDER_NAME / Path("model.pt")
 
     for num_candidates in NUM_CANDIDATES:
         num_candidates_list.append(num_candidates)

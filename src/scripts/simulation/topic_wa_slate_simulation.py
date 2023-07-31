@@ -273,6 +273,7 @@ if __name__ == "__main__":
                         is_terminal,
                         _,
                         _,
+                        diverse_topics,
                     ) = env.step(slate, cdocs_subset_idx=candidates)
                     # normalize satisfaction between 0 and 1
                     # response = (response - min_rew) / (max_rew - min_rew)
@@ -331,6 +332,7 @@ if __name__ == "__main__":
                 f"Max_Avg_satisfaction: {ep_max_avg} - Max_Cum_Rew: {ep_max_cum}\n"
                 f"Avg_Avg_satisfaction: {ep_avg_avg} - Avg_Cum_Rew: {ep_avg_cum}\n"
                 f"Cumulative_Normalized: {cum_normalized}"
+                f"Diverse_topics: {diverse_topics}\n"
             )
             # print(log_str)
             ###########################################################################
@@ -345,7 +347,8 @@ if __name__ == "__main__":
                 "best_rl_avg_diff": ep_max_avg - ep_avg_satisfaction,
                 "best_avg_avg_diff": ep_max_avg - ep_avg_avg,
                 "cum_normalized": cum_normalized,
-                "session_length":sess_length
+                "session_length":sess_length,
+                "diverse_topics": diverse_topics,
             }
             if len(replay_memory_dataset.memory) >= (WARMUP_BATCHES * BATCH_SIZE):
                 log_dict["loss"] = loss
@@ -363,7 +366,7 @@ if __name__ == "__main__":
             save_dict["cum_normalized"].append(cum_normalized)
 
         wandb.finish()
-        directory = f"proto_slate_300_10_{ALPHA_RESPONSE}"
+        directory = f"proto_slate_2000_5_{ALPHA_RESPONSE}"
         save_run_wa(
             seed=seed,
             save_dict=save_dict,
