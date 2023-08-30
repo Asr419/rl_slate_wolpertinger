@@ -183,7 +183,6 @@ if __name__ == "__main__":
 
             cdocs_features, cdocs_quality, cdocs_length = env.get_candidate_docs()
             user_state = torch.Tensor(env.curr_user.get_state()).to(DEVICE)
-            
 
             max_sess, avg_sess = [], []
             while not is_terminal:
@@ -234,6 +233,7 @@ if __name__ == "__main__":
                         _,
                         _,
                         diverse_topics,
+                        topiv_value,
                     ) = env.step(slate, cdocs_subset_idx=None)
                     # normalize satisfaction between 0 and 1
                     # response = (response - min_rew) / (max_rew - min_rew)
@@ -308,7 +308,7 @@ if __name__ == "__main__":
                 "best_rl_avg_diff": ep_max_avg - ep_avg_satisfaction,
                 "best_avg_avg_diff": ep_max_avg - ep_avg_avg,
                 "cum_normalized": cum_normalized,
-                "session_length":sess_length, 
+                "session_length": sess_length,
                 "diverse_topics": diverse_topics,
             }
             if len(replay_memory_dataset.memory) >= (WARMUP_BATCHES * BATCH_SIZE):
@@ -325,5 +325,5 @@ if __name__ == "__main__":
             save_dict["cum_normalized"].append(cum_normalized)
 
         wandb.finish()
-        directory = f"slateq_non-boredom_{ALPHA_RESPONSE}_300"
+        directory = f"slateq_boredom_{ALPHA_RESPONSE}_300"
         save_run(seed=seed, save_dict=save_dict, agent=agent, directory=directory)

@@ -47,7 +47,9 @@ class SlateGym(gym.Env):
         cdocs_feature = cdocs_feature[slate, :]
         cdocs_quality = cdocs_quality[slate]
         cdocs_length = cdocs_length[slate]
-        diverse_topics=torch.sum(torch.sum(cdocs_feature, dim=0)>0)
+
+        diverse_topics = torch.sum(torch.sum(cdocs_feature, dim=0) > 0)
+        topic_value = torch.nonzero(torch.sum(cdocs_feature, dim=0) > 0).squeeze()
 
         # select from the slate on item following the user choice model
         self.curr_user.choice_model.score_documents(
@@ -102,7 +104,8 @@ class SlateGym(gym.Env):
             is_terminal,
             False,
             info,
-            diverse_topics
+            diverse_topics,
+            topic_value,
         )
 
     def reset(self) -> None:

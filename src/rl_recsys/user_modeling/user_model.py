@@ -64,6 +64,9 @@ class UserModel(nn.Module):
     def update_budget_noselection(self) -> None:
         self.budget -= 0.5
 
+    def get_boredom(self):
+        return self.state_model.boredom
+
 
 class UserSampler:
     # has to call user features generator to initialize a user

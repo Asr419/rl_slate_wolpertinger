@@ -8,15 +8,13 @@ save_path = os.environ.get("SAVE_PATH")
 BASE_LOAD_PATH = Path.home() / save_path
 load_dotenv()
 base_path = Path.home() / Path(os.environ.get("SAVE_PATH"))
-MODEL_SEED = 53
+MODEL_SEED = 5
 RUN_K = [5, 10, 20]
 DEVICE = "cpu"
 print("DEVICE: ", DEVICE)
 
-NUM_CANDIDATES = [300, 500, 1000, 2000]
+NUM_CANDIDATES = [2000, 1000, 500, 300]
 if __name__ == "__main__":
-    
-
     seed = 37
 
     model_name_list = []
@@ -24,11 +22,11 @@ if __name__ == "__main__":
     serving_time_users_list = []
 
     for run_k in RUN_K:
-        FOLDER_NAME = f"proto_slate_{run_k}_0.25_{MODEL_SEED}"
+        FOLDER_NAME = f"proto_slate_300_{run_k}_0.25_{MODEL_SEED}"
         AGENT_PATH = base_path / FOLDER_NAME / Path("model.pt")
         ACTOR_PATH = base_path / FOLDER_NAME / Path("actor.pt")
         parser = argparse.ArgumentParser()
-        config_path = base_path / FOLDER_NAME  / Path("config.yaml")
+        config_path = base_path / FOLDER_NAME / Path("config.yaml")
         parser.add_argument(
             "--config",
             type=str,
@@ -148,7 +146,6 @@ if __name__ == "__main__":
                 while not is_terminal:
                     start = time.time()
                     with torch.no_grad():
-                        NEAREST_NEIGHBOURS = int((run_k) * (num_candidates / 100))
                         cdocs_features_act, candidates = actor.k_nearest(
                             user_state,
                             cdocs_features,
@@ -183,6 +180,8 @@ if __name__ == "__main__":
                             is_terminal,
                             _,
                             _,
+                            diversity,
+                            selection_topic,
                         ) = env.step(slate, cdocs_subset_idx=candidates)
 
                         end = time.time()
@@ -213,5 +212,5 @@ if __name__ == "__main__":
         zip(model_name_list, num_candidates_list, serving_time_users_list),
         columns=["model_name", "num_candidates", "serving_time"],
     )
-    res_df.to_csv(BASE_LOAD_PATH / "serving_time_wp.csv", index=False)
+    res_df.to_csv(BASE_LOAD_PATH / "serving_time_wp_slate.csv", index=False)
     print(res_df)

@@ -10,22 +10,20 @@ base_path = Path.home() / Path(os.environ.get("SAVE_PATH"))
 save_path = os.environ.get("SAVE_PATH")
 BASE_LOAD_PATH = Path.home() / save_path
 
-MODEL_SEED = 42
+MODEL_SEED = 5
 RUN_K = [5, 10, 20]
 DEVICE = "cpu"
 print("DEVICE: ", DEVICE)
 
 NUM_CANDIDATES = [300, 500, 1000, 2000]
 if __name__ == "__main__":
-    
-
     seed = 37
 
     model_name_list = []
     num_candidates_list = []
     serving_time_users_list = []
 
-    FOLDER_NAME = f"slateq_boredom_0.25_2000_{MODEL_SEED}"
+    FOLDER_NAME = f"slateq_boredom_0.25_300_{MODEL_SEED}"
     AGENT_PATH = base_path / FOLDER_NAME / Path("model.pt")
     parser = argparse.ArgumentParser()
     config_path = base_path / FOLDER_NAME / Path("config.yaml")
@@ -178,6 +176,8 @@ if __name__ == "__main__":
                         is_terminal,
                         _,
                         _,
+                        diversity,
+                        selected_position,
                     ) = env.step(slate, cdocs_subset_idx=None)
 
                     end = time.time()

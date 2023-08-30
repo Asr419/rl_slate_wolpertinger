@@ -5,17 +5,18 @@ print("DEVICE: ", DEVICE)
 load_dotenv()
 base_path = Path.home() / Path(os.environ.get("SAVE_PATH"))
 
+
 if __name__ == "__main__":
     USER_SEED = 13
-    NUM_EPISODES = 200
+    NUM_EPISODES = 100
     ALPHA = 0.25
     SEEDS = [5, 7, 46, 53, 77]
     # K = [5, 10, 20]
-    K = [5]
+    K = [5, 10, 20]
     for seed in SEEDS:
         for k in K:
             pl.seed_everything(USER_SEED)
-            RUN_BASE_PATH = Path(f"proto_slate_{k}_{ALPHA}_{seed}")
+            RUN_BASE_PATH = Path(f"proto_slate_300_{k}_{ALPHA}_{seed}")
             PATH = base_path / RUN_BASE_PATH / Path("model.pt")
             ACTOR_PATH = base_path / RUN_BASE_PATH / Path("actor.pt")
             parser = argparse.ArgumentParser()
@@ -60,8 +61,15 @@ if __name__ == "__main__":
             slate_gen_model_cls = parameters["slate_gen_model_cls"]
 
             ######## Init_wandb ########
-            RUN_NAME = f"Topic_GAMMA_{GAMMA}_SEED_{seed}_ALPHA_{ALPHA_RESPONSE}_WA"
-            # wandb.init(project="rl_recsys", config=config["parameters"], name=RUN_NAME)
+            RUN_NAME = (
+                f"Topic_GAMMA_{GAMMA}_SEED_{seed}_ALPHA_{ALPHA_RESPONSE}_WA_SLATE"
+            )
+            wandb.init(
+                project="rl_recsys",
+                config=config["parameters"],
+                name=RUN_NAME,
+                group="Proto_Slate_explore",
+            )
 
             ################################################################
             user_feat_gen = UniformFeaturesGenerator()
@@ -130,8 +138,11 @@ if __name__ == "__main__":
                 cdocs_features, cdocs_quality, cdocs_length = env.get_candidate_docs()
                 user_state = torch.Tensor(env.curr_user.get_state()).to(DEVICE)
 
-                max_sess, avg_sess = [], []
+                max_sess, avg_sess, explored_topic = [], [], []
+                c = 0
+                diversity_score = 0
                 while not is_terminal:
+                    c += 1
                     # print("user_state: ", user_state)
                     with torch.no_grad():
                         ########################################
@@ -183,11 +194,34 @@ if __name__ == "__main__":
                             is_terminal,
                             _,
                             _,
+                            diversity,
+                            selected_position,
                         ) = env.step(slate, cdocs_subset_idx=candidates)
                         # normalize reward between 0 and 1
                         # response = (response - min_rew) / (max_rew - min_rew)
                         reward.append(response)
+                        if selected_position.dim() == 0:
+                            selected_position = [selected_position.item()]
+                        else:
+                            selected_position = selected_position.tolist()
+                        # print(selected_position)
                         quality.append(doc_quality)
+                        diversity_score += diversity
+                        for i in selected_position:
+                            if i not in explored_topic:
+                                explored_topic.append(i)
+                        exploration = len(explored_topic) / NUM_ITEM_FEATURES
+
+                        boredom = env.curr_user.get_boredom()
+                        # response = torch.tensor(response)
+                        # save_dict["exploration"].append(exploration)
+                        # save_dict["diversity"].append(diversity)
+                        # session_dict = {
+                        #     "exploration": exploration,
+                        #     "reward": response,
+                        #     "diversity": diversity,
+                        # }
+                        # wandb.log(session_dict, step=c)
 
                         next_user_state = env.curr_user.get_state()
                         # push memory
@@ -197,7 +231,7 @@ if __name__ == "__main__":
                             time_unit_consumed.append(-0.5)
                         else:
                             time_unit_consumed.append(4.0)
-
+                diversity_score = diversity_score / c
                 ep_quality = torch.mean(torch.tensor(quality))
                 sess_length = np.sum(time_unit_consumed)
                 ep_avg_reward = torch.mean(torch.tensor(reward))
@@ -212,26 +246,27 @@ if __name__ == "__main__":
                     else ep_max_cum / ep_cum_reward
                 )
 
-                log_str = (
-                    f"Avg_Reward: {ep_avg_reward} - Cum_Rew: {ep_cum_reward}\n"
-                    f"Max_Avg_Reward: {ep_max_avg} - Max_Cum_Rew: {ep_max_cum}\n"
-                    f"Avg_Avg_Reward: {ep_avg_avg} - Avg_Cum_Rew: {ep_avg_cum}\n"
-                    f"Cumulative_Normalized: {cum_normalized}"
-                )
-                print(log_str)
+                # log_str = (
+                #     f"Avg_Reward: {ep_avg_reward} - Cum_Rew: {ep_cum_reward}\n"
+                #     f"Max_Avg_Reward: {ep_max_avg} - Max_Cum_Rew: {ep_max_cum}\n"
+                #     f"Avg_Avg_Reward: {ep_avg_avg} - Avg_Cum_Rew: {ep_avg_cum}\n"
+                #     f"Cumulative_Normalized: {cum_normalized}"
+                # )
+                # print(log_str)
                 ###########################################################################
-                log_dict = {
-                    "quality": ep_quality,
-                    "avg_reward": ep_avg_reward,
-                    "cum_reward": ep_cum_reward,
-                    "max_avg": ep_max_avg,
-                    "max_cum": ep_max_cum,
-                    "avg_avg": ep_avg_avg,
-                    "avg_cum": ep_avg_cum,
-                    "best_rl_avg_diff": ep_max_avg - ep_avg_reward,
-                    "best_avg_avg_diff": ep_max_avg - ep_avg_avg,
-                    "cum_normalized": cum_normalized,
-                }
+                # log_dict = {
+                #     "quality": ep_quality,
+                #     "avg_reward": ep_avg_reward,
+                #     "cum_reward": ep_cum_reward,
+                #     "max_avg": ep_max_avg,
+                #     "max_cum": ep_max_cum,
+                #     "avg_avg": ep_avg_avg,
+                #     "avg_cum": ep_avg_cum,
+                #     "best_rl_avg_diff": ep_max_avg - ep_avg_reward,
+                #     "best_avg_avg_diff": ep_max_avg - ep_avg_avg,
+                #     "cum_normalized": cum_normalized,
+                #     "diversirty_score": diversity_score,
+                # }
                 # wandb.log(log_dict, step=i_episode)
 
                 ###########################################################################
@@ -243,7 +278,7 @@ if __name__ == "__main__":
                 save_dict["best_avg_avg_diff"].append(ep_max_avg - ep_avg_avg)
                 save_dict["cum_normalized"].append(cum_normalized)
 
-            # wandb.finish()
+            wandb.finish()
 
-            directory = f"serving_proto_slate_2000_{k}"
+            directory = f"serving_proto_slate_300_{k}"
             save_run(seed=seed, save_dict=save_dict, agent=agent, directory=directory)

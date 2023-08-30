@@ -1,6 +1,6 @@
 import abc
 from typing import Tuple
-
+import time
 import numpy as np
 import torch
 
@@ -31,6 +31,8 @@ class WolpertingerActorSlate(nn.Module):
         for layer in self.layers:
             x = F.leaky_relu(layer(x))
         return x
+
+
 # class WolpertingerActorSlate(nn.Module):
 #     def __init__(
 #         self, nn_dim: list[int], k: int, input_dim: int = 20, slate_size: int = 5
@@ -73,59 +75,59 @@ class WolpertingerActorSlate(nn.Module):
 #         x = x + ortho_lambda * ortho_reg_loss
 
 #         return x
-    # def forward(self, x, batch):
-    #     # output protoaction
-    #     for layer in self.layers:
-    #         x = F.leaky_relu(layer(x))
-        
-    #     # Reshape the output tensor to separate the tensors of size 20
-    #     batch_size = x.size(0)
-    #     slate_size = 5
-    #     tensor_size = 20
-    #     if batch:
-    #         x = x.view(batch_size,slate_size, tensor_size)
-    #     else:
-    #         x=x.view(slate_size, tensor_size)
+# def forward(self, x, batch):
+#     # output protoaction
+#     for layer in self.layers:
+#         x = F.leaky_relu(layer(x))
+
+#     # Reshape the output tensor to separate the tensors of size 20
+#     batch_size = x.size(0)
+#     slate_size = 5
+#     tensor_size = 20
+#     if batch:
+#         x = x.view(batch_size,slate_size, tensor_size)
+#     else:
+#         x=x.view(slate_size, tensor_size)
 
 
-    #     # Perform orthogonalization on the tensors of size 20
-    #     if batch:
-    #         tensor_list=[]
-    #         for z in range(batch_size):
-    #             x=x[z,:,:]
-    #             x=x.view(slate_size,tensor_size)
-    #             for i in range(slate_size):
-    #                 for j in range(i):
-    #                     x[:, i] -= torch.dot(x[:, i], x[:, j]) / torch.dot(x[:, j], x[:, j]) * x[:, j]
-    #                 x[:, i] /= torch.norm(x[:, i])
-                
-    #             # Reshape back to the original output tensor shape
-    #             x = x.view(slate_size * tensor_size)
-    #         tensor_list.append(x)    
-    #         return tensor_list
-    #     else:
-    #         for i in range(slate_size):
-    #             for j in range(i):
-    #                 x[:, i] -= torch.dot(x[:, i], x[:, j]) / torch.dot(x[:, j], x[:, j]) * x[:, j]
-    #             x[:, i] /= torch.norm(x[:, i])
-            
-    #         # Reshape back to the original output tensor shape
-    #         x = x.view(slate_size * tensor_size)
-            
-    #         return x
-    # def k_nearest(
-    #     self,
-    #     input_state: torch.Tensor,
-    #     candidate_docs: torch.Tensor,
-    # ) -> None:
-    #     proto_action = self(input_state)
-    #     distances = torch.linalg.norm(candidate_docs - proto_action, axis=1)
-    #     # Sort distances and get indices of k smallest distances
-    #     indices = torch.argsort(distances, dim=0)[: self.k]
-    #     # Select k closest tensors from tensor list
-    #     candidates_subset = candidate_docs[indices]
+#     # Perform orthogonalization on the tensors of size 20
+#     if batch:
+#         tensor_list=[]
+#         for z in range(batch_size):
+#             x=x[z,:,:]
+#             x=x.view(slate_size,tensor_size)
+#             for i in range(slate_size):
+#                 for j in range(i):
+#                     x[:, i] -= torch.dot(x[:, i], x[:, j]) / torch.dot(x[:, j], x[:, j]) * x[:, j]
+#                 x[:, i] /= torch.norm(x[:, i])
 
-    #     return candidates_subset, indices
+#             # Reshape back to the original output tensor shape
+#             x = x.view(slate_size * tensor_size)
+#         tensor_list.append(x)
+#         return tensor_list
+#     else:
+#         for i in range(slate_size):
+#             for j in range(i):
+#                 x[:, i] -= torch.dot(x[:, i], x[:, j]) / torch.dot(x[:, j], x[:, j]) * x[:, j]
+#             x[:, i] /= torch.norm(x[:, i])
+
+#         # Reshape back to the original output tensor shape
+#         x = x.view(slate_size * tensor_size)
+
+#         return x
+# def k_nearest(
+#     self,
+#     input_state: torch.Tensor,
+#     candidate_docs: torch.Tensor,
+# ) -> None:
+#     proto_action = self(input_state)
+#     distances = torch.linalg.norm(candidate_docs - proto_action, axis=1)
+#     # Sort distances and get indices of k smallest distances
+#     indices = torch.argsort(distances, dim=0)[: self.k]
+#     # Select k closest tensors from tensor list
+#     candidates_subset = candidate_docs[indices]
+
+#     return candidates_subset, indices
 
 
 class ActorAgentSlate(nn.Module):
@@ -180,6 +182,7 @@ class ActorAgentSlate(nn.Module):
             input_state, use_actor_policy_net=use_actor_policy_net
         )
         proto_slate = proto_action.view(slate_size, 20)
+        start = time.time()
         for count, i in enumerate(proto_slate):
             distances = torch.linalg.norm(candidate_docs - i, axis=1)
             # Sort distances and get indices of k smallest distances
@@ -195,8 +198,9 @@ class ActorAgentSlate(nn.Module):
                 candidates_tensor = torch.cat(
                     (candidates_tensor, candidates_subset), dim=0
                 )
-
-            # append indices to another tensor at each iteration
+        end = time.time()
+        # print("k_nearest_time", end - start)
+        # append indices to another tensor at each iteration
 
         # distances = torch.linalg.norm(candidate_docs - proto_action, axis=1)
         # # Sort distances and get indices of k smallest distances

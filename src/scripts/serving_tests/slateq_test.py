@@ -9,11 +9,11 @@ base_path = Path.home() / Path(os.environ.get("SAVE_PATH"))
 if __name__ == "__main__":
     SEEDS = [5, 7, 46, 53, 77]
     USER_SEED = 13
-    NUM_EPISODES = 200
+    NUM_EPISODES = 100
 
     for seed in tqdm(SEEDS):
         ALPHA = 0.25
-        RUN_BASE_PATH = Path(f"slateq_boredom_{ALPHA}_2000_{seed}")
+        RUN_BASE_PATH = Path(f"slateq_boredom_{ALPHA}_300_{seed}")
 
         parser = argparse.ArgumentParser()
         config_path = base_path / RUN_BASE_PATH / Path("config.yaml")
@@ -61,7 +61,12 @@ if __name__ == "__main__":
 
         ######## Init_wandb ########
         RUN_NAME = f"Topic_GAMMA_{GAMMA}_SEED_{seed}_ALPHA_{ALPHA_RESPONSE}_SLATEQ"
-        # wandb.init(project="rl_recsys", config=config["parameters"], name=RUN_NAME)
+        wandb.init(
+            project="rl_recsys",
+            config=config["parameters"],
+            name=RUN_NAME,
+            group="SLATEQ_explore",
+        )
 
         ################################################################
         user_feat_gen = UniformFeaturesGenerator()
@@ -92,7 +97,7 @@ if __name__ == "__main__":
         env = SlateGym(
             user_sampler=user_sampler,
             doc_sampler=doc_sampler,
-            num_candidates=NUM_CANDIDATES,
+            num_candidates=500,
             device=DEVICE,
         )
 
@@ -126,8 +131,11 @@ if __name__ == "__main__":
             cdocs_features, cdocs_quality, cdocs_length = env.get_candidate_docs()
             user_state = torch.Tensor(env.curr_user.get_state()).to(DEVICE)
 
-            max_sess, avg_sess = [], []
+            max_sess, avg_sess, explored_topic = [], [], []
+            c = 0
+            diversity_score = 0
             while not is_terminal:
+                c += 1
                 # print("user_state: ", user_state)
                 with torch.no_grad():
                     ########################################
@@ -174,11 +182,36 @@ if __name__ == "__main__":
                         is_terminal,
                         _,
                         _,
+                        diversity,
+                        selected_position,
                     ) = env.step(slate, cdocs_subset_idx=None)
                     # normalize reward between 0 and 1
                     # response = (response - min_rew) / (max_rew - min_rew)
                     reward.append(response)
                     quality.append(doc_quality)
+                    if selected_position.dim() == 0:
+                        selected_position = [selected_position.item()]
+                    else:
+                        selected_position = selected_position.tolist()
+
+                    diversity_score += diversity
+                    for i in selected_position:
+                        if i not in explored_topic:
+                            explored_topic.append(i)
+                    exploration = len(explored_topic) / NUM_ITEM_FEATURES
+
+                    diversity_score += diversity
+
+                    boredom = env.curr_user.get_boredom()
+                    # save_dict["exploration"].append(exploration)
+                    # save_dict["diversity"].append(diversity)
+
+                    # session_dict = {
+                    #     "exploration": exploration,
+                    #     "reward": response,
+                    #     "diversity": diversity,
+                    # }
+                    # wandb.log(session_dict, step=c)
 
                     next_user_state = env.curr_user.get_state()
                     # push memory
@@ -187,7 +220,7 @@ if __name__ == "__main__":
                         time_unit_consumed.append(-0.5)
                     else:
                         time_unit_consumed.append(4.0)
-
+            diversity_score = diversity_score / c
             ep_quality = torch.mean(torch.tensor(quality))
             sess_length = np.sum(time_unit_consumed)
             ep_avg_reward = torch.mean(torch.tensor(reward))
@@ -221,6 +254,7 @@ if __name__ == "__main__":
                 "best_rl_avg_diff": ep_max_avg - ep_avg_reward,
                 "best_avg_avg_diff": ep_max_avg - ep_avg_avg,
                 "cum_normalized": cum_normalized,
+                "diversirty_score": diversity_score,
             }
             # wandb.log(log_dict, step=i_episode)
 
@@ -235,6 +269,6 @@ if __name__ == "__main__":
 
         for k, v in save_dict.items():
             print(k, len(v))
-        # wandb.finish()
-        directory = f"serving_slateq_2000"
+        wandb.finish()
+        directory = f"serving_slateq_300"
         save_run(seed=seed, save_dict=save_dict, agent=agent, directory=directory)

@@ -7,8 +7,6 @@ import torch.nn as nn
 from rl_recsys.user_modeling.features_gen import AbstractFeaturesGenerator
 
 feature_gen_type = TypeVar("feature_gen_type", bound=AbstractFeaturesGenerator)
-INDEX1 = -1
-boredom = 0
 
 
 class AbstractUserState(nn.Module, metaclass=abc.ABCMeta):
@@ -64,13 +62,13 @@ class ObservableUserState(AbstractUserState):
         p_negative = (1 - I) / 2
 
         random = torch.rand(1)
-        if (random < p_positive):
+        if random < p_positive:
             self.user_state[index] += delta_t  # type: ignore
         # if random < p_negative:
         #     self.user_state[index] -= delta_t  # type: ignore
-        elif (random > p_positive):
+        elif random > p_positive:
             self.user_state[index] -= delta_t  # type: ignore
-    
+
         self.user_state = torch.clamp(self.user_state, -1, 1)
 
 
@@ -123,11 +121,11 @@ class BoredomObservableUserState(ObservableUserState):
 #         ) * -self.user_state[
 #             index
 #         ]  # type: ignore
-       
+
 #         if len(self.boredom_list) < 10:
-#             self.boredom_list.append(index) 
+#             self.boredom_list.append(index)
 #         else:
-#             self.boredom_list.append(index) 
+#             self.boredom_list.append(index)
 #             self.boredom_list.pop(0)
 #         count = self.boredom_list.count(index)
 #         I = torch.dot(self.user_state, selected_doc_feature)  # type: ignore
@@ -144,6 +142,6 @@ class BoredomObservableUserState(ObservableUserState):
 #         elif count >= 5:
 #             self.user_state[index] = -1
 
-       
+
 #         # print(f"User State:{self.user_state}")
 #         self.user_state = torch.clamp(self.user_state, -1, 1)

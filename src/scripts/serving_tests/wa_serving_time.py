@@ -9,15 +9,13 @@ BASE_LOAD_PATH = Path.home() / save_path
 load_dotenv()
 base_path = Path.home() / Path(os.environ.get("SAVE_PATH"))
 
-MODEL_SEED = 53
+MODEL_SEED = 5
 RUN_K = [5, 10, 20]
 DEVICE = "cpu"
 print("DEVICE: ", DEVICE)
 
-NUM_CANDIDATES = [300, 500, 1000, 2000]
+NUM_CANDIDATES = [2000, 1000, 500, 300]
 if __name__ == "__main__":
-    
-
     seed = 37
 
     model_name_list = []
@@ -25,7 +23,7 @@ if __name__ == "__main__":
     serving_time_users_list = []
 
     for run_k in RUN_K:
-        FOLDER_NAME = f"proto_item_{run_k}_0.25_{MODEL_SEED}"
+        FOLDER_NAME = f"proto_item_300_{run_k}_0.25_{MODEL_SEED}"
         AGENT_PATH = base_path / FOLDER_NAME / Path("model.pt")
         ACTOR_PATH = base_path / FOLDER_NAME / Path("actor.pt")
         parser = argparse.ArgumentParser()
@@ -154,7 +152,7 @@ if __name__ == "__main__":
                             user_state,
                             cdocs_features,
                             use_actor_policy_net=True,
-                            )
+                        )
 
                         q_val_list = []
                         for cdoc in cdocs_features_act:
@@ -183,6 +181,8 @@ if __name__ == "__main__":
                             is_terminal,
                             _,
                             _,
+                            diversity,
+                            selection_position,
                         ) = env.step(slate, cdocs_subset_idx=candidates)
 
                         end = time.time()

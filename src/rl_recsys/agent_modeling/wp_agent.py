@@ -1,6 +1,6 @@
 import abc
 from typing import Tuple
-
+import time
 import numpy as np
 import torch
 
@@ -90,11 +90,14 @@ class ActorAgent(nn.Module):
         proto_action = self.compute_proto_item(
             input_state, use_actor_policy_net=use_actor_policy_net
         )
+        start = time.time()
         distances = torch.linalg.norm(candidate_docs - proto_action, axis=1)
         # Sort distances and get indices of k smallest distances
         indices = torch.argsort(distances, dim=0)[: self.k]
         # Select k closest tensors from tensor list
         candidates_subset = candidate_docs[indices]
+        end = time.time()
+        # print("k_nearest_time", end - start)
 
         return candidates_subset, indices
 
