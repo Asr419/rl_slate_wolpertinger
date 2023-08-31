@@ -11,7 +11,7 @@ Authors:
 # Repository setup
 To setup the repository clone the github link and run command poetry install from the IDE terminal which will create the .venv file. Ensure that the python environment setup points to python in the.venv file which is in .venv/bin/python
 # Document Sampler
-The documentsampler.py in src/recsys/document_modelling is used to sample candidate documents at the start of the episode for each user.
+The documentsampler.py in src/rl_recsys/document_modelling is used to sample candidate documents at the start of the episode for each user.
 
 # User Dynamics
 The user state and interest update at each step as described in the paper is carried out in src/recsys/user modelling/user_state.py . At the start of training the N number of users are generated using user_sampler which is in src/rl_recsys/user modelling/user_model.py
