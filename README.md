@@ -60,7 +60,7 @@ parameters:
   To run the test set the user_seed as 11 in the files which are in the directory src/scripts/serving_tests for both slateQ and slatewolpertinger in file slateq_test.py, wa_test.py and wa_slate_test.py respectively.
   
   # Serving time
-  To check the serving time for both the models run slateq_serving_time.py and wa_serving_time.py in the path src/scripts/serving_tests
+  To check the serving time for both the models run slateq_serving_time.py, wa_serving_time.py and wa_slate_serving_time.py in the path src/scripts/serving_tests
 
   # Plotting scripts
   For convergence plot refer to src/plotting_scripts/plot_convergence.ipynb. Load all the 5 trained models for 5 seeded runs and will directly plot convergence for cumulative satisfaction as mentioned in the paper.
