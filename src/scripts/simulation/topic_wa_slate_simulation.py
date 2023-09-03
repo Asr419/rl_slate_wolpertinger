@@ -73,17 +73,23 @@ def optimize_model(batch, batch_size):
     loss.backward()
     optimizer.step()
     item = actor.compute_proto_slate(state_batch, use_actor_policy_net=True)
-    # Reshaping the tensor to match the desired shape [30, 20]
-    proto_action_tensor = item.reshape(batch_size, 20, 5)
+    proto_action_tensor = item.reshape(batch_size, 5, 20)
 
     # Taking the average along the third axis to reduce the tensor size
-    proto_action_tensor = torch.mean(proto_action_tensor, axis=2)
-    actor_loss = -agent.compute_q_values(
-        state_batch,
-        proto_action_tensor,
-        use_policy_net=True,
-    )
-    actor_loss = actor_loss.mean()
+    proto_action_tensor_2 = torch.mean(proto_action_tensor, axis=1)
+    actor_item_loss = torch.empty(128, 5)
+    for i in range(5):
+        q_values = -agent.compute_q_values(
+            state_batch,
+            proto_action_tensor[:, i, :],
+            use_policy_net=True,
+        )
+        if q_values.shape != (128, 1):
+            raise ValueError(f"Shape mismatch in q_values for column {i}")
+
+        # Assign q_values to the corresponding column
+        actor_item_loss[:, i : i + 1] = -q_values
+    actor_loss = torch.mean(actor_item_loss, dim=1, keepdim=True).mean()
     actor_loss.backward()
     actor_optimizer.step()
     return loss, actor_loss
@@ -374,7 +380,7 @@ if __name__ == "__main__":
             save_dict["cum_normalized"].append(cum_normalized)
 
         wandb.finish()
-        directory = f"proto_slate_300_5_{ALPHA_RESPONSE}"
+        directory = f"proto_slate_300_20_{ALPHA_RESPONSE}"
         save_run_wa(
             seed=seed,
             save_dict=save_dict,

@@ -1,7 +1,7 @@
 parameters:
   ######## User related parameters ########
   resp_amp_factor: 1.0
-  state_model_cls: BoredomObservableUserState
+  state_model_cls: ObservableUserState
   choice_model_cls: DotProductChoiceModel
   response_model_cls: WeightedDotProductResponseModel
   ######## Environment related parameters ########
@@ -18,15 +18,15 @@ parameters:
   gamma: 1.0
   tau: 0.0001
   lr: 1e-4
-  num_episodes: 50000
+  num_episodes: 20000
   warmup_batches: 1
   device: "cpu"
   ######## Models related parameters ########
   slate_gen_model_cls: TopKSlateGenerator
   ######## Wolpertinger policy ########
-  nearest_neighbours: 15
+  nearest_neighbours: 60
   ######## Seed ########
-  seeds: [5, 7, 46, 53, 77]
+  seeds: [5, 7]
   #[5, 7, 46, 53, 77]
   #[5, 7, 42, 97, 33]
   #test=[140, 184, 30, 62, 4]
@@ -36,5 +36,5 @@ parameters:
   #[5, 7, 9, 11, 13, 17]
   #[5, 7, 77, 79, 81, 42, 11, 13, 17]
   ######## Grouping ########
-  grouping: "SlateQ-Indecisive"
+  grouping: "Proto_Slate_Qavg"
   
