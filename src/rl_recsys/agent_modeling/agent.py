@@ -18,3 +18,10 @@ class SlateAgent(metaclass=abc.ABCMeta):
         """Get the action (slate) of the agent"""
         scores, ids = self.slate_gen(docs_scores, docs_qvalues)
         return ids
+
+    def get_greedy_action(
+        self, docs_scores: torch.Tensor, docs_qvalues: torch.Tensor
+    ) -> torch.Tensor:
+        """Get the action (slate) of the agent"""
+        ids = self.slate_gen(docs_scores, docs_qvalues)
+        return ids

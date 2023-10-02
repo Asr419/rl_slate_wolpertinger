@@ -74,22 +74,46 @@ def optimize_model(batch, batch_size):
     optimizer.step()
     item = actor.compute_proto_slate(state_batch, use_actor_policy_net=True)
     proto_action_tensor = item.reshape(batch_size, 5, 20)
+    actor_loss_list = []
 
     # Taking the average along the third axis to reduce the tensor size
-    proto_action_tensor_2 = torch.mean(proto_action_tensor, axis=1)
-    actor_item_loss = torch.empty(128, 5)
-    for i in range(5):
-        q_values = -agent.compute_q_values(
-            state_batch,
-            proto_action_tensor[:, i, :],
+    # proto_action_tensor_2 = torch.mean(proto_action_tensor, axis=1)
+    for i in range(batch_size):
+        proto_action_tensor_rep = proto_action_tensor[i]
+        state = state_batch[i]
+        user_state_rep = state.repeat((proto_action_tensor_rep.shape[0], 1))
+        q_loss = agent.compute_q_values(
+            user_state_rep,
+            proto_action_tensor_rep,
             use_policy_net=True,
         )
-        if q_values.shape != (128, 1):
-            raise ValueError(f"Shape mismatch in q_values for column {i}")
+        with torch.no_grad():
+            detached_scores = choice_model.score_documents(
+                state, proto_action_tensor_rep
+            ).detach()
+            # [num_candidates, 1]
+        scores_tens_loss = torch.Tensor(detached_scores).to(DEVICE).unsqueeze(dim=1)
+        # max over Q(s', a)
+        scores_tens_loss = torch.softmax(scores_tens_loss, dim=0)
+        v_sum = scores_tens_loss.squeeze().mean()
+        actor_loss_list.append(-torch.sum((q_loss * scores_tens_loss) / v_sum))
+    actor_loss = torch.tensor(actor_loss_list, requires_grad=True).unsqueeze(1).mean()
+    # actor_item_loss = torch.empty(128, 5)
+    # for i in range(5):
+    #     q_values = -agent.compute_q_values(
+    #         state_batch,
+    #         proto_action_tensor[:, i, :],
+    #         use_policy_net=True,
+    # print(q_loss.grad_fn)
+    # print(scores_tens_loss.grad_fn)
+    # #     )
+    # a = 10
+    #     if q_values.shape != (128, 1):
+    #         raise ValueError(f"Shape mismatch in q_values for column {i}")
 
-        # Assign q_values to the corresponding column
-        actor_item_loss[:, i : i + 1] = -q_values
-    actor_loss = torch.mean(actor_item_loss, dim=1, keepdim=True).mean()
+    #     # Assign q_values to the corresponding column
+    #     actor_item_loss[:, i : i + 1] = -q_values
+    # actor_loss = torch.mean(actor_item_loss, dim=1, keepdim=True).mean()
     actor_loss.backward()
     actor_optimizer.step()
     return loss, actor_loss
@@ -203,14 +227,14 @@ if __name__ == "__main__":
             shuffle=False,
         )
         actor = ActorAgentSlate(
-            nn_dim=[40, 40, 40],
+            nn_dim=[40, 40, 40, 40, 40],
             k=int(NEAREST_NEIGHBOURS / SLATE_SIZE),
             slate_size=SLATE_SIZE,
         )
 
         criterion = torch.nn.SmoothL1Loss()
-        optimizer = optim.Adam(agent.parameters(), lr=LR)
-        actor_optimizer = optim.Adam(actor.parameters(), lr=LR, weight_decay=5e-3)
+        optimizer = optim.Adam(agent.parameters(), lr=LR, weight_decay=1e-2)
+        actor_optimizer = optim.Adam(actor.parameters(), lr=LR)
 
         ############################## TRAINING ###################################
         save_dict = defaultdict(list)
@@ -380,7 +404,7 @@ if __name__ == "__main__":
             save_dict["cum_normalized"].append(cum_normalized)
 
         wandb.finish()
-        directory = f"proto_slate_300_20_{ALPHA_RESPONSE}"
+        directory = f"proto_slate_q_avg_300_20_{ALPHA_RESPONSE}"
         save_run_wa(
             seed=seed,
             save_dict=save_dict,

@@ -79,37 +79,79 @@ class RandomSlateGenerator(AbstractSlateGenerator):
 
 
 # # todo: to be checked
-# class GreedySlateGenerator(AbstractSlateGenerator):
-#     def __call__(
-#         self,
-#         docs_scores: torch.Tensor,
-#         docs_qvals: torch.Tensor,
-#     ) -> Tuple[torch.Tensor]:
-#         # (slate_size, s_no_click, s, q):
-#         def argmax(v, mask):
-#             return torch.argmax((v - torch.min(v)) * mask, dim=0)
+class GreedySlateGenerator(AbstractSlateGenerator):
+    def __call__(
+        self,
+        docs_scores: torch.Tensor,
+        docs_qvals: torch.Tensor,
+    ) -> Tuple[torch.Tensor]:
+        # (slate_size, s_no_click, s, q):
+        def argmax(v, mask):
+            return torch.argmax((v - torch.min(v)) * mask, dim=0)
 
-#         numerator = torch.tensor(0.0)
-#         denominator = torch.tensor(-1.0)  # set s_no_click to -1.0
-#         mask = torch.ones_like(docs_qvals)
+        numerator = torch.tensor(0.0)
+        denominator = torch.tensor(-1.0)  # set s_no_click to -1.0
+        mask = torch.ones_like(docs_qvals)
 
-#         def set_element(v, i, x):
-#             mask = torch.zeros_like(v)
-#             mask[i] = 1
-#             v_new = torch.ones_like(v) * x
-#             return torch.where(mask == 1, v_new, v)
+        def set_element(v, i, x):
+            mask = torch.zeros_like(v)
+            mask[i] = 1
+            v_new = torch.ones_like(v) * x
+            return torch.where(mask == 1, v_new, v)
 
-#         for _ in range(self.slate_size):
-#             k = argmax(
-#                 (numerator + docs_scores * docs_qvals) / (denominator + docs_scores),
-#                 mask,
-#             )
-#             mask = set_element(mask, k, 0)
-#             numerator = numerator + docs_scores * docs_qvals[k]
-#             denominator = denominator + docs_scores[k]
+        for _ in range(self.slate_size):
+            k = argmax(
+                (numerator + docs_scores * docs_qvals) / (denominator + docs_scores),
+                mask,
+            )
+            mask = set_element(mask, k, 0)
+            numerator = numerator + docs_scores * docs_qvals[k]
+            denominator = denominator + docs_scores[k]
 
-#         output_slate = torch.where(mask == 0)[0]
-#         return output_slate
+        output_slate = torch.where(mask == 0)[0]
+        return output_slate
+
+
+class OptimalSlateGenerator:
+    def __call__(
+        self,
+        docs_scores: torch.Tensor,
+        docs_qvals: torch.Tensor,
+    ) -> Tuple[torch.Tensor]:
+        num_candidates = docs_scores.shape[0]
+        s_no_click = torch.tensor(-1.0)
+
+        # Generate all possible slates without duplicate indices.
+        num_samples = 2**num_candidates  # Total number of possible slates
+        slates = torch.arange(num_samples).to(torch.long)
+        slates = ((slates[:, None] & (1 << torch.arange(num_candidates))) > 0).to(
+            torch.long
+        )
+
+        # Filter out slates with more than self.slate_size documents.
+        valid_slate_mask = slates.sum(dim=1) == self.slate_size
+        slates = slates[valid_slate_mask]
+
+        # Compute the slate scores and q values.
+        slate_scores = torch.zeros((slates.shape[0], self.slate_size))
+        slate_qvals = torch.ones((slates.shape[0], self.slate_size))
+        for i in range(self.slate_size):
+            idx = (
+                slates[:, i].nonzero().squeeze()
+            )  # Get the indices of selected documents
+            slate_scores[:, i] = docs_scores[idx]
+            slate_qvals[:, i] = docs_qvals[idx]
+
+        # Compute the total score and q value for each slate.
+        slate_q_values = slate_scores * slate_qvals
+        slate_normalizer = slate_scores.sum(dim=1) + s_no_click
+        slate_q_values = slate_q_values / slate_normalizer.unsqueeze(1)
+        slate_sum_q_values = slate_q_values.sum(dim=1)
+
+        # Select the slate with the highest expected reward.
+        max_q_slate_index = slate_sum_q_values.argmax()
+
+        return slates[max_q_slate_index]
 
 
 # class OptimalSlateGenerator(AbstractSlateGenerator):

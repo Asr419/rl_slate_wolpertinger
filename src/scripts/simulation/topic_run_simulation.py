@@ -39,6 +39,7 @@ def optimize_model(batch):
         curr_q_tgt = topk.values
 
         topk_idx = topk.indices
+        topk_idx = agent.get_action(scores_tens, cand_qtgt)
         p_sum = scores_tens[topk_idx, :].squeeze().sum()
 
         # normalize curr_q_tgt to sum to 1
@@ -325,5 +326,5 @@ if __name__ == "__main__":
             save_dict["cum_normalized"].append(cum_normalized)
 
         wandb.finish()
-        directory = f"slateq_boredom_{ALPHA_RESPONSE}_300"
-        save_run(seed=seed, save_dict=save_dict, agent=agent, directory=directory)
+        # directory = f"slateq_boredom_{ALPHA_RESPONSE}_300"
+        # save_run(seed=seed, save_dict=save_dict, agent=agent, directory=directory)

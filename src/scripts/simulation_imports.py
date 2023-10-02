@@ -22,6 +22,7 @@ from rl_recsys.agent_modeling.dqn_agent import DQNAgent, ReplayMemoryDataset, Tr
 from rl_recsys.agent_modeling.slate_generator import (  # DiverseSlateGenerator,; GreedySlateGenerator,; OptimalSlateGenerator,
     RandomSlateGenerator,
     TopKSlateGenerator,
+    GreedySlateGenerator,
 )
 from rl_recsys.agent_modeling.wp_agent import WolpertingerActor, ActorAgent
 from rl_recsys.agent_modeling.wp_slate_agent import (
@@ -44,7 +45,10 @@ from rl_recsys.user_modeling.response_model import (
     WeightedDotProductResponseModel,
 )
 from rl_recsys.user_modeling.user_model import UserSampler
-from rl_recsys.user_modeling.user_state import ObservableUserState, BoredomObservableUserState
+from rl_recsys.user_modeling.user_state import (
+    ObservableUserState,
+    BoredomObservableUserState,
+)
 from rl_recsys.utils import save_run, save_run_wa
 
 class_name_to_class = {
@@ -53,6 +57,7 @@ class_name_to_class = {
     "DotProductChoiceModel": DotProductChoiceModel,
     "DotProductResponseModel": DotProductResponseModel,
     "TopKSlateGenerator": TopKSlateGenerator,
+    "GreedySlateGenerator": GreedySlateGenerator,
     "RandomSlateGenerator": RandomSlateGenerator,
     # "DiverseSlateGenerator": DiverseSlateGenerator,
     # "GreedySlateGenerator": GreedySlateGenerator,

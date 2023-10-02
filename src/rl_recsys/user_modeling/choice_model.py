@@ -26,7 +26,7 @@ class AbstractChoiceModel(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def score_documents(
         self, user_state: torch.Tensor, docs_repr: torch.Tensor
-    ) -> None:
+    ) -> torch.Tensor:
         pass
 
     @abc.abstractmethod
@@ -69,6 +69,7 @@ class NormalizableChoiceModel(AbstractChoiceModel):
 
     def score_documents(self, user_state: torch.Tensor, docs_repr: torch.Tensor):
         self._scores = self._score_documents(user_state, docs_repr)
+        return self.scores
 
 
 class DotProductChoiceModel(NormalizableChoiceModel):
