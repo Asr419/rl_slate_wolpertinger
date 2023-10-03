@@ -95,7 +95,7 @@ def optimize_model(batch, batch_size):
         scores_tens_loss = torch.Tensor(detached_scores).to(DEVICE).unsqueeze(dim=1)
         # max over Q(s', a)
         scores_tens_loss = torch.softmax(scores_tens_loss, dim=0)
-        v_sum = scores_tens_loss.squeeze().mean()
+        v_sum = scores_tens_loss.squeeze().sum()
         actor_loss_list.append(-torch.sum((q_loss * scores_tens_loss) / v_sum))
     actor_loss = torch.tensor(actor_loss_list, requires_grad=True).unsqueeze(1).mean()
     # actor_item_loss = torch.empty(128, 5)
@@ -227,14 +227,14 @@ if __name__ == "__main__":
             shuffle=False,
         )
         actor = ActorAgentSlate(
-            nn_dim=[40, 40, 40, 40, 40],
+            nn_dim=[20, 40, 60, 80, 100],
             k=int(NEAREST_NEIGHBOURS / SLATE_SIZE),
             slate_size=SLATE_SIZE,
         )
 
         criterion = torch.nn.SmoothL1Loss()
-        optimizer = optim.Adam(agent.parameters(), lr=LR, weight_decay=1e-2)
-        actor_optimizer = optim.Adam(actor.parameters(), lr=LR)
+        optimizer = optim.Adam(agent.parameters(), lr=LR)
+        actor_optimizer = optim.Adam(actor.parameters(), lr=LR, weight_decay=1e-4)
 
         ############################## TRAINING ###################################
         save_dict = defaultdict(list)
@@ -404,11 +404,11 @@ if __name__ == "__main__":
             save_dict["cum_normalized"].append(cum_normalized)
 
         wandb.finish()
-        directory = f"proto_slate_q_avg_300_20_{ALPHA_RESPONSE}"
-        save_run_wa(
-            seed=seed,
-            save_dict=save_dict,
-            agent=agent,
-            directory=directory,
-            actor=actor,
-        )
+        # directory = f"proto_slate_q_avg_300_20_{ALPHA_RESPONSE}"
+        # save_run_wa(
+        #     seed=seed,
+        #     save_dict=save_dict,
+        #     agent=agent,
+        #     directory=directory,
+        #     actor=actor,
+        # )

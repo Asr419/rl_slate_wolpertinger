@@ -21,9 +21,9 @@ class WolpertingerActorSlate(nn.Module):
             if i == 0:
                 layers.append(nn.Linear(input_dim, dim))
             elif i == len(nn_dim) - 1:
-                layers.append(nn.Linear(dim, slate_size * 20))
+                layers.append(nn.Linear(nn_dim[i - 1], slate_size * 20))
             else:
-                layers.append(nn.Linear(dim, dim))
+                layers.append(nn.Linear(nn_dim[i - 1], dim))
         self.layers = nn.ModuleList(layers)
 
     def forward(self, x):
