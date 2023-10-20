@@ -58,6 +58,7 @@ class DocumentSampler:
         topic = self.topic_dist.sample()
         doc = torch.zeros(self.num_topics)
         doc[topic] = 1
+        # doc = torch.rand(self.num_topics, device=self.device)
 
         # Sample the quality of the document
         quality = self.quality_dists[topic].sample()

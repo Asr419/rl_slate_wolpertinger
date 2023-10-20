@@ -142,6 +142,7 @@ if __name__ == "__main__":
         choice_model_cls = parameters["choice_model_cls"]
         response_model_cls = parameters["response_model_cls"]
         resp_amp_factor = parameters["resp_amp_factor"]
+        user_feature_cls = parameters["user_feature_model_cls"]
 
         ######## Environment related parameters ########
         SLATE_SIZE = parameters["slate_size"]
@@ -173,7 +174,7 @@ if __name__ == "__main__":
         wandb.init(project="rl_recsys", config=config["parameters"], name=RUN_NAME)
 
         ################################################################
-        user_feat_gen = UniformFeaturesGenerator()
+        user_feat_gen = BinaryFeaturesGenerator()
         state_model_cls = class_name_to_class[state_model_cls]
         choice_model_cls = class_name_to_class[choice_model_cls]
         response_model_cls = class_name_to_class[response_model_cls]
@@ -227,14 +228,20 @@ if __name__ == "__main__":
             shuffle=False,
         )
         actor = ActorAgentSlate(
-            nn_dim=[20, 40, 60, 80, 100],
+            nn_dim=[
+                20,
+                40,
+                60,
+                80,
+                100,
+            ],  # observable= [20, 40, 60, 80, 100], weight_decay=1e-4
             k=int(NEAREST_NEIGHBOURS / SLATE_SIZE),
             slate_size=SLATE_SIZE,
         )
 
         criterion = torch.nn.SmoothL1Loss()
         optimizer = optim.Adam(agent.parameters(), lr=LR)
-        actor_optimizer = optim.Adam(actor.parameters(), lr=LR, weight_decay=1e-4)
+        actor_optimizer = optim.Adam(actor.parameters(), lr=LR)
 
         ############################## TRAINING ###################################
         save_dict = defaultdict(list)
@@ -301,6 +308,11 @@ if __name__ == "__main__":
 
                     q_val = q_val.squeeze()
                     slate = agent.get_action(scores, q_val)
+                    Q_values = q_val[slate]
+
+                    Q_value_max = Q_values.max()
+                    Q_value_min = Q_values.min()
+                    Q_value_diff = Q_value_max - Q_value_min
                     # print("slate: ", slate)
 
                     (
@@ -375,6 +387,9 @@ if __name__ == "__main__":
             # print(log_str)
             ###########################################################################
             log_dict = {
+                "Q_value_max": Q_value_max,
+                "Q_value_min": Q_value_min,
+                "Q_value_diff": Q_value_diff,
                 "quality": ep_quality,
                 "avg_satisfaction": ep_avg_satisfaction,
                 "cum_satisfaction": ep_cum_satisfaction,

@@ -38,6 +38,7 @@ from rl_recsys.user_modeling.choice_model import (
 from rl_recsys.user_modeling.features_gen import (
     NormalUserFeaturesGenerator,
     UniformFeaturesGenerator,
+    BinaryFeaturesGenerator,
 )
 from rl_recsys.user_modeling.response_model import (
     CosineResponseModel,
@@ -59,6 +60,9 @@ class_name_to_class = {
     "TopKSlateGenerator": TopKSlateGenerator,
     "GreedySlateGenerator": GreedySlateGenerator,
     "RandomSlateGenerator": RandomSlateGenerator,
+    "NormalFeaturesGenerator": NormalUserFeaturesGenerator,
+    "UniformFeaturesGenerator": UniformFeaturesGenerator,
+    "BinaryFeaturesGenerator": BinaryFeaturesGenerator,
     # "DiverseSlateGenerator": DiverseSlateGenerator,
     # "GreedySlateGenerator": GreedySlateGenerator,
     # "OptimalSlateGenerator": OptimalSlateGenerator,
